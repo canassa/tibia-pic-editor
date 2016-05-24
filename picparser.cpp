@@ -3,7 +3,7 @@
 #include <iomanip>
 #include <fstream>
 #include <png.h>
-#include <boost/filesystem/operations.hpp>
+// #include <boost/filesystem/operations.hpp>
 #include <unistd.h>
 //#include <boost.h>
 using namespace std;
@@ -42,7 +42,7 @@ int write_png( FILE * pngfile, tsprite * sprite )
 
 	// initialize stuff
 	png_structp png_ptr = png_create_write_struct( PNG_LIBPNG_VER_STRING, NULL, NULL, NULL );
-	
+
 	if( !png_ptr )
   {
     cout << "!png_ptr" << endl;
@@ -70,7 +70,7 @@ int write_png( FILE * pngfile, tsprite * sprite )
     cout << "setjmp(png_jmpbuf(png_ptr))" << endl;
     return 1;
   }
-    
+
   width = 32;
   height = 32;
   color_type = PNG_COLOR_TYPE_RGBA;
@@ -83,12 +83,12 @@ int write_png( FILE * pngfile, tsprite * sprite )
 	png_write_info(png_ptr, info_ptr);
 
 
-  // Fill row_pointers  
+  // Fill row_pointers
 	//row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * height);
   row_pointers = new png_bytep [height];
 	for( int y=0; y<height; y++ )
-		//row_pointers[y] = (png_byte*) malloc(info_ptr->rowbytes);
-		row_pointers[y] = new png_byte [info_ptr->rowbytes];
+		//row_pointers[y] = (png_byte*) malloc(png_get_rowbytes(png_ptr, info_ptr));
+		row_pointers[y] = new png_byte [png_get_rowbytes(png_ptr, info_ptr)];
 
 	for( int y=0; y<height; y++ )
   {
@@ -144,7 +144,7 @@ int write_png_image( FILE * pngfile, timage * image )
 
 	// initialize stuff
 	png_structp png_ptr = png_create_write_struct( PNG_LIBPNG_VER_STRING, NULL, NULL, NULL );
-	
+
 	if( !png_ptr )
   {
     cout << "!png_ptr" << endl;
@@ -172,7 +172,7 @@ int write_png_image( FILE * pngfile, timage * image )
     cout << "setjmp(png_jmpbuf(png_ptr))" << endl;
     return 1;
   }
-    
+
   width = image->width * 32;
   height = image->height * 32;
   color_type = PNG_COLOR_TYPE_RGBA;
@@ -185,10 +185,10 @@ int write_png_image( FILE * pngfile, timage * image )
 	png_write_info(png_ptr, info_ptr);
 
 
-  // Fill row_pointers  
+  // Fill row_pointers
   row_pointers = new png_bytep [height];
 	for( int y=0; y<height; y++ )
-		row_pointers[y] = new png_byte [info_ptr->rowbytes];
+		row_pointers[y] = new png_byte [png_get_rowbytes(png_ptr, info_ptr)];
 
 	for( int y=0; y<height; y++ )
   {
@@ -236,15 +236,15 @@ int write_png_image( FILE * pngfile, timage * image )
 int read_sprite( ifstream * pic, int sprite_adr, tsprite * sprite )
 {
   int adr;
-  
+
   unsigned short int size, alpha, pixel_num;
-  
+
   adr = pic->tellg();
-  
+
   pic->seekg(sprite_adr);
 
   pic->read( (char *)&size, sizeof(size) );
-  
+
   int byte_count = 0;
   int pixel_count = 0;
   while( byte_count < size )
@@ -252,7 +252,7 @@ int read_sprite( ifstream * pic, int sprite_adr, tsprite * sprite )
     pic->read( (char *)&alpha, sizeof(alpha) );
     pixel_count += alpha;
     pic->read( (char *)&pixel_num, sizeof(pixel_num) );
-    
+
     byte_count += 4;
     alpha = pixel_count + pixel_num;
 
@@ -263,12 +263,12 @@ int read_sprite( ifstream * pic, int sprite_adr, tsprite * sprite )
       pic->read( (char *)&red, sizeof(red) );
       pic->read( (char *)&green, sizeof(green) );
       pic->read( (char *)&blue, sizeof(blue) );
-      
+
       sprite->pixel[pixel_count / 32][pixel_count % 32].red = red;
       sprite->pixel[pixel_count / 32][pixel_count % 32].green = green;
       sprite->pixel[pixel_count / 32][pixel_count % 32].blue = blue;
       sprite->pixel[pixel_count / 32][pixel_count % 32].alpha = false;
-      
+
       //sprite->pixel[0][pixel_count].red = red;
       //sprite->pixel[0][pixel_count].green = green;
       //sprite->pixel[0][pixel_count].blue = blue;
@@ -278,10 +278,10 @@ int read_sprite( ifstream * pic, int sprite_adr, tsprite * sprite )
       pixel_count++;
     }
   }
-  
+
   // Restore file add aress
   pic->seekg(adr);
-  
+
   return 0;
 }
 
@@ -290,7 +290,7 @@ int pic_extract( ifstream * pic )
   unsigned version;
   unsigned short image_num;
   unsigned sprite_adr;
-  
+
   ofstream data;
 
   timage * image;
@@ -298,23 +298,23 @@ int pic_extract( ifstream * pic )
   tpixel ** pixel;
 
 
-  // Create a new directory.
-  if( !boost::filesystem::exists("images") )
-  {
-    if( !boost::filesystem::create_directory("images") )
-    {
-      cerr << "Unable to create 'images' directory" << endl;
-      exit(1);
-    }
-  }
-  else
-  {
-    if( !boost::filesystem::is_directory("images") )
-    {
-      cerr << "Unable to create 'images' directory" << endl;
-      exit(1);
-    }
-  }
+  // // Create a new directory.
+  // if( !boost::filesystem::exists("images") )
+  // {
+  //   if( !boost::filesystem::create_directory("images") )
+  //   {
+  //     cerr << "Unable to create 'images' directory" << endl;
+  //     exit(1);
+  //   }
+  // }
+  // else
+  // {
+  //   if( !boost::filesystem::is_directory("images") )
+  //   {
+  //     cerr << "Unable to create 'images' directory" << endl;
+  //     exit(1);
+  //   }
+  // }
 
   // Create the pic.data file
   data.open( "images/pic.data", ios::binary );
@@ -327,16 +327,16 @@ int pic_extract( ifstream * pic )
   // Read the Tibia.pic version and store it.
   pic->read( (char *)&version, sizeof(version) );
   data.write( (char *)&version, sizeof(version) );
-  
+
   // Read how many images are stored.
   pic->read( (char *)&image_num, sizeof(image_num) );
   data.write( (char *)&image_num, sizeof(image_num) );
 
-#ifdef DEBUG  
+#ifdef DEBUG
   cout << "Version  : " << hex << version << endl;
   cout << "Image_num: " << image_num << endl;
 #endif
-  
+
   try
   {
     image = new timage [image_num];
@@ -377,7 +377,7 @@ int pic_extract( ifstream * pic )
               image[a].sprite[b][c].pixel[d][e].alpha = true;
             }
           }
-          
+
           read_sprite( pic, sprite_adr, &image[a].sprite[b][c] );
         }
       }
@@ -405,7 +405,7 @@ int pic_extract( ifstream * pic )
     cerr << "Error allocating memory." << endl;
     exit(1);
   }
-  
+
   for( int a=0; a<image_num; a++ )
   {
     for( int b=0; b<image[a].height; b++ )
@@ -423,7 +423,7 @@ int pic_extract( ifstream * pic )
     delete [] image[a].sprite;
   }
   delete [] image;
-  
+
 
 }
 
@@ -457,7 +457,7 @@ int read_png_file( const char * file_name, timage * image )
 
 	// initialize stuff.
 	png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	
+
 	if (!png_ptr)
   {
 		//abort_("[read_png_file] png_create_read_struct failed");
@@ -482,47 +482,47 @@ int read_png_file( const char * file_name, timage * image )
 
 	png_read_info(png_ptr, info_ptr);
 
-	image->width = info_ptr->width / 32;
-	image->height = info_ptr->height / 32;
+	image->width = png_get_image_width(png_ptr, info_ptr) / 32;
+	image->height = png_get_image_height(png_ptr, info_ptr) / 32;
 	//color_type = info_ptr->color_type;
-	//bit_depth = info_ptr->bit_depth;
+	//bit_depth = png_get_bit_depth(png_ptr, info_ptr);
 	//number_of_passes = png_set_interlace_handling(png_ptr);
-	
-	if( info_ptr->color_type != 6 )
+
+	if( png_get_color_type(png_ptr, info_ptr) != 6 )
 	{
         cerr << "Wrong color type!" << endl;
         exit(1);
     }
 
-	if( info_ptr->bit_depth != 8 )
+	if( png_get_bit_depth(png_ptr, info_ptr) != 8 )
 	{
         cerr << "Wrong bit depth!" << endl;
         exit(1);
     }
 #ifdef DEBUG
   cout << "Color Type: " << (int)(info_ptr->color_type) << endl;
-  cout << "Bit Depth: " << (int)(info_ptr->bit_depth) << endl;
+  cout << "Bit Depth: " << (int)(png_get_bit_depth(png_ptr, info_ptr)) << endl;
 #endif
-  
-  if( info_ptr->width % 32 )
+
+  if( png_get_image_width(png_ptr, info_ptr) % 32 )
   {
     cout << "ERROR: Invalid image width." << endl;
     exit(1);
   }
-  
-  if( info_ptr->height % 32 )
+
+  if( png_get_image_height(png_ptr, info_ptr) % 32 )
   {
     cout << "ERROR: Invalid image height." << endl;
     exit(1);
   }
 
 #ifdef DEBUG
-  cout << "Width: " << info_ptr->width << "  Height: " << info_ptr->height << endl;
+  cout << "Width: " << png_get_image_width(png_ptr, info_ptr) << "  Height: " << png_get_image_height(png_ptr, info_ptr) << endl;
 #endif
 
 
-  
-  
+
+
 	png_read_update_info(png_ptr, info_ptr);
 
 
@@ -533,11 +533,11 @@ int read_png_file( const char * file_name, timage * image )
     exit(1);
   }
 
-  // Fill row_pointers  
-  row_pointers = new png_bytep [info_ptr->height];
-	for( int y=0; y<info_ptr->height; y++ )
-		row_pointers[y] = new png_byte [info_ptr->rowbytes];
-    
+  // Fill row_pointers
+  row_pointers = new png_bytep [png_get_image_height(png_ptr, info_ptr)];
+	for( int y=0; y<png_get_image_height(png_ptr, info_ptr); y++ )
+		row_pointers[y] = new png_byte [png_get_rowbytes(png_ptr, info_ptr)];
+
 
 	png_read_image(png_ptr, row_pointers);
 
@@ -563,14 +563,14 @@ int read_png_file( const char * file_name, timage * image )
         }
 */
       }
-      
+
     }
   }
 
-  for( int y=0; y<info_ptr->height; y++ )
+  for( int y=0; y<png_get_image_height(png_ptr, info_ptr); y++ )
   {
 		png_byte* row = row_pointers[y];
-		for( int x=0; x<info_ptr->width; x++ )
+		for( int x=0; x<png_get_image_width(png_ptr, info_ptr); x++ )
     {
 			png_byte* ptr = &(row[x*4]);
 
@@ -581,7 +581,7 @@ int read_png_file( const char * file_name, timage * image )
 			//image->sprite[y/32][x/32].pixel[y%32][x%32].alpha = false;
 		}
 	}
-  
+
   /*
   for( int i=0; i<5; i++ )
   {
@@ -600,7 +600,7 @@ int read_png_file( const char * file_name, timage * image )
   delete [] row_pointers;
 
   fclose(fp);
-  
+
   return 0;
 }
 
@@ -623,8 +623,8 @@ int write_sprite( ofstream * pic, unsigned int adress, tsprite * sprite )
 #ifdef DEBUG
   cout << "write_sprite" << endl;
 #endif
-  
-  
+
+
   // Pop file adress
   adr = pic->tellp();   //AdrBackup := FilePos(Arq);
 
@@ -670,15 +670,15 @@ int write_sprite( ofstream * pic, unsigned int adress, tsprite * sprite )
 
     pic->seekp(backup_adr);
     pic->write( (char *)&i, sizeof(i) );
-    
+
     backup_adr = pic->tellp();
     backup_adr += i*3;
     pic->seekp( i*3, ios::cur );
-    
+
   }
 
   pic->seekp(adress);
-  
+
   unsigned short int aux;
   aux = backup_adr-adress-2;
   pic->write( (char *)&aux, sizeof(aux) );
@@ -701,12 +701,12 @@ int write_sprite( ofstream * pic, unsigned int adress, tsprite * sprite )
 int pic_compile( ofstream * pic )
 {
   timage * image;
-  
+
   ifstream png_image, data;
-  
+
   unsigned int version;
   unsigned short int image_num;
-  
+
   unsigned int sprite_begin=0;
 
   // Open the pic.data file.
@@ -724,7 +724,7 @@ int pic_compile( ofstream * pic )
   // Write the version and image_num.
   pic->write( (char *)&version, sizeof(version) );
   pic->write( (char *)&image_num, sizeof(image_num) );
-  
+
   sprite_begin = image_num*5 + sizeof(image_num) + sizeof(version);
 
   image = new timage [image_num];
@@ -745,7 +745,7 @@ int pic_compile( ofstream * pic )
     cout << "Opened " << Stm.str() << endl;
 
     read_png_file( Stm.str().c_str(), &image[i] );
-    
+
     sprite_begin += image[i].width * image[i].height * 4;
 
     png_image.close();
@@ -754,14 +754,14 @@ int pic_compile( ofstream * pic )
 #ifdef DEBUG
   cout << "Sprite_begin: " << sprite_begin << endl;
 #endif
-  
+
   for( int i=0; i<image_num; i++ )
   {
     unsigned char aux1, aux2, aux3;
-    
+
     pic->write( (char *)&image[i].width, sizeof(image[i].width) );
     pic->write( (char *)&image[i].height, sizeof(image[i].height) );
-    
+
     data.read( (char *)&aux1, sizeof(aux1) );
     data.read( (char *)&aux2, sizeof(aux2) );
     data.read( (char *)&aux3, sizeof(aux3) );
@@ -770,7 +770,7 @@ int pic_compile( ofstream * pic )
     pic->write( (char *)&aux2, sizeof(aux2) );
     pic->write( (char *)&aux3, sizeof(aux3) );
 
-    
+
 
     for( int a=0; a<image[i].height; a++ )
     {
@@ -845,7 +845,7 @@ int main( int argc, char **argv )
     cerr << "Usage: picparser [c|x] [file]" << endl;
     exit(1);
   }
-  
+
   if( extract )
   {
     pic_in.open( filename, ios::binary );
