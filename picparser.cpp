@@ -5,6 +5,7 @@
 #include <png.h>
 // #include <boost/filesystem/operations.hpp>
 #include <unistd.h>
+#include <sys/stat.h>
 //#include <boost.h>
 using namespace std;
 
@@ -297,24 +298,8 @@ int pic_extract( ifstream * pic )
   tsprite ** sprite;
   tpixel ** pixel;
 
-
-  // // Create a new directory.
-  // if( !boost::filesystem::exists("images") )
-  // {
-  //   if( !boost::filesystem::create_directory("images") )
-  //   {
-  //     cerr << "Unable to create 'images' directory" << endl;
-  //     exit(1);
-  //   }
-  // }
-  // else
-  // {
-  //   if( !boost::filesystem::is_directory("images") )
-  //   {
-  //     cerr << "Unable to create 'images' directory" << endl;
-  //     exit(1);
-  //   }
-  // }
+  // Create a new directory.
+  mkdir("images", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
   // Create the pic.data file
   data.open( "images/pic.data", ios::binary );

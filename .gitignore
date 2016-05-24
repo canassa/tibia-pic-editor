@@ -1,1 +1,4 @@
 picparser
+images
+*.pic
+.DS_Store
